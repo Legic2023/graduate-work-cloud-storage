@@ -1,6 +1,5 @@
 package ru.netology.cloudstorage.services;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +15,6 @@ import ru.netology.cloudstorage.exceptions.InvalidJwtException;
 import ru.netology.cloudstorage.repositories.UsersRepository;
 
 
-@Slf4j
 @Service
 public class AuthService implements UserDetailsService {
 
@@ -44,4 +42,6 @@ public class AuthService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return usersRepository.findByLogin(username);
     }
+
+
 }

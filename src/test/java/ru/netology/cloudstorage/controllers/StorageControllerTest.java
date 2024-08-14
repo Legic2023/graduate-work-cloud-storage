@@ -12,7 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.netology.cloudstorage.config.auth.TokenProvider;
 import ru.netology.cloudstorage.dtos.FileNameInRequest;
+import ru.netology.cloudstorage.entities.User;
+import ru.netology.cloudstorage.enums.UserRole;
 import ru.netology.cloudstorage.services.AuthService;
 import ru.netology.cloudstorage.services.StorageServiceImpl;
 
@@ -56,6 +59,9 @@ class StorageControllerTest {
     @MockBean
     AuthService authService;
 
+    @MockBean
+    TokenProvider tokenProvider;
+
     @Autowired
     StorageController storageController;
 
@@ -66,6 +72,8 @@ class StorageControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(storageController).build();
+        when(tokenProvider.getCurrentUser(any())).thenReturn(new User());
+
     }
 
     @Test
@@ -80,27 +88,27 @@ class StorageControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        Mockito.verify(mockStorageServiceImpl).uploadFile(any(), any(), any());
+        Mockito.verify(mockStorageServiceImpl).uploadFile(any(), any());
     }
 
     @Test
     void testGetFileList() throws Exception {
 
         List<String> list = List.of(FILENAME_UPLOAD, FILENAME_EDIT);
-        when(mockStorageServiceImpl.getFileList(any())).thenReturn(list);
+        when(mockStorageServiceImpl.getFileList()).thenReturn(list);
 
         mockMvc.perform(get(ENDPOINT_LIST)
                         .header(AUTH_HEADER, BEARER + PASSWORD_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        Mockito.verify(mockStorageServiceImpl).getFileList(any());
+        Mockito.verify(mockStorageServiceImpl).getFileList();
     }
 
     @Test
     void testEditFileName() throws Exception {
 
-        when(mockStorageServiceImpl.editFileName(any(), eq(FILENAME_UPLOAD), eq(FILENAME_EDIT))).thenReturn(String.valueOf(String.class));
+        when(mockStorageServiceImpl.editFileName(any(User.class), eq(FILENAME_UPLOAD), eq(FILENAME_EDIT))).thenReturn(String.valueOf(String.class));
 
         var body = objectMapper.writeValueAsString(new FileNameInRequest(FILENAME_EDIT));
 
@@ -116,7 +124,7 @@ class StorageControllerTest {
     @Test
     void testDeleteFile() throws Exception {
 
-        when(mockStorageServiceImpl.deleteFile(any(), any())).thenReturn(String.valueOf(String.class));
+        when(mockStorageServiceImpl.deleteFile(any(User.class), any())).thenReturn(String.valueOf(String.class));
 
         mockMvc.perform(delete(ENDPOINT_FILES).param(FILENAME_PARAM, FILENAME_UPLOAD)
                         .header(AUTH_HEADER, BEARER + PASSWORD_VALUE))
@@ -126,7 +134,7 @@ class StorageControllerTest {
     @Test
     void testDownloadFile() throws Exception {
 
-        when(mockStorageServiceImpl.downloadFile(any(), any())).thenReturn(FILENAME_UPLOAD.getBytes());
+        when(mockStorageServiceImpl.downloadFile(any(User.class), any())).thenReturn(FILENAME_UPLOAD.getBytes());
 
         var result = mockMvc.perform(get(ENDPOINT_FILES).param(FILENAME_PARAM, FILENAME_UPLOAD)
                         .header(AUTH_HEADER, BEARER + PASSWORD_VALUE)

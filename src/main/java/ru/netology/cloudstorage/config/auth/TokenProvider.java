@@ -5,8 +5,11 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import ru.netology.cloudstorage.entities.User;
+import ru.netology.cloudstorage.exceptions.InvalidAuthException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -45,6 +48,16 @@ public class TokenProvider {
 
     private Instant genAccessExpirationDate() {
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    }
+
+    public User getCurrentUser(String token) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String login = validateToken(token);
+        if (!login.equals(auth.getName())) {
+            throw new InvalidAuthException();
+        } else {
+            return (User) auth.getPrincipal();
+        }
     }
 
 }

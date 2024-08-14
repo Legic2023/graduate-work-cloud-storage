@@ -93,8 +93,8 @@ class CloudStorageApplicationTests {
         List<String> listFilesExpected = List.of(FILENAME_UPLOAD, FILENAME_EDIT);
         List<String> listFilesActual = storageRepository.getFileNames();
 
-        assertEquals(FILENAME_UPLOAD, storageRepository.findByFileName(FILENAME_UPLOAD).getFileName());
-        assertEquals(FILENAME_EDIT, storageRepository.findByFileName(FILENAME_EDIT).getFileName());
+        assertEquals(FILENAME_UPLOAD, storageRepository.findByFileNameAndUser(FILENAME_UPLOAD, userUser).getFileName());
+        assertEquals(FILENAME_EDIT, storageRepository.findByFileNameAndUser(FILENAME_EDIT, userAdmin).getFileName());
         assertEquals(listFilesExpected.stream().sorted().toList(), listFilesActual.stream().sorted().toList());
 
     }

@@ -1,7 +1,7 @@
 package ru.netology.cloudstorage.exceptions;
 
-public class AuthMessageException extends RuntimeException {
-    public AuthMessageException() {
+public class InvalidAuthException extends RuntimeException {
+    public InvalidAuthException() {
         super("User authentication failed");
     }
 }

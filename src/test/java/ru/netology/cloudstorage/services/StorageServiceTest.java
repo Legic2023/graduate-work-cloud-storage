@@ -71,11 +71,12 @@ public class StorageServiceTest {
     void uploadFile() throws Exception {
         MockMultipartFile mockMultipartFile = mockFile(FILENAME_UPLOAD);
         setAuthentication(signUpDtoAdmin);
-        var token = authController.createUserAuth(logInDtoAdmin);
 
-        storageService.uploadFile(token, FILENAME_UPLOAD, mockMultipartFile);
+        storageService.uploadFile(FILENAME_UPLOAD, mockMultipartFile);
 
-        var storage = storageRepository.findByFileName(FILENAME_UPLOAD);
+        User userAdmin = (User) usersRepository.findByLogin(USER_ADMIN);
+
+        var storage = storageRepository.findByFileNameAndUser(FILENAME_UPLOAD, userAdmin);
         assertEquals(FILENAME_UPLOAD, storage.getFileName());
         assertEquals(USER_ADMIN, storage.getUser().getLogin());
     }
@@ -84,8 +85,7 @@ public class StorageServiceTest {
     void getFileList() {
         storageRepository.save(new Storage(FILENAME_UPLOAD, null, null));
         setAuthentication(signUpDtoUser);
-        var token = authController.createUserAuth(logInDtoUser);
-        var fileList = storageService.getFileList(token);
+        var fileList = storageService.getFileList();
 
         assertFalse(fileList.isEmpty());
         assertEquals(1, fileList.size());
@@ -100,9 +100,8 @@ public class StorageServiceTest {
         User userAdmin = (User) usersRepository.findByLogin(USER_ADMIN);
         storageRepository.save(new Storage(FILENAME_UPLOAD, mockMultipartFile.getBytes(), userAdmin));
         setAuthentication(signUpDtoAdmin);
-        var token = authController.createUserAuth(logInDtoAdmin);
 
-        var bytesExpected = storageService.downloadFile(token, FILENAME_UPLOAD);
+        var bytesExpected = storageService.downloadFile(userAdmin, FILENAME_UPLOAD);
         assertArrayEquals(bytesExpected, bytesActual);
     }
 
@@ -111,13 +110,12 @@ public class StorageServiceTest {
         User userAdmin = (User) usersRepository.findByLogin(USER_ADMIN);
         storageRepository.save(new Storage(FILENAME_UPLOAD, null, userAdmin));
         setAuthentication(signUpDtoAdmin);
-        var token = authController.createUserAuth(logInDtoAdmin);
 
-        assertTrue(storageRepository.existsByFileName(FILENAME_UPLOAD));
-        storageService.editFileName(token, FILENAME_UPLOAD, FILENAME_EDIT);
-        assertFalse(storageRepository.existsByFileName(FILENAME_UPLOAD));
+        assertTrue(storageRepository.existsByFileNameAndUser(FILENAME_UPLOAD, userAdmin));
+        storageService.editFileName(userAdmin, FILENAME_UPLOAD, FILENAME_EDIT);
+        assertFalse(storageRepository.existsByFileNameAndUser(FILENAME_UPLOAD, userAdmin));
 
-        var storage = storageRepository.findByFileName(FILENAME_EDIT);
+        var storage = storageRepository.findByFileNameAndUser(FILENAME_EDIT, userAdmin);
         assertEquals(FILENAME_EDIT, storage.getFileName());
     }
 
@@ -127,11 +125,10 @@ public class StorageServiceTest {
         User userAdmin = (User) usersRepository.findByLogin(USER_ADMIN);
         storageRepository.save(new Storage(FILENAME_UPLOAD, mockMultipartFile.getBytes(), userAdmin));
         setAuthentication(signUpDtoAdmin);
-        var token = authController.createUserAuth(logInDtoAdmin);
 
-        assertTrue(storageRepository.existsByFileName(FILENAME_UPLOAD));
-        storageService.deleteFile(token, FILENAME_UPLOAD);
-        assertFalse(storageRepository.existsByFileName(FILENAME_UPLOAD));
+        assertTrue(storageRepository.existsByFileNameAndUser(FILENAME_UPLOAD, userAdmin));
+        storageService.deleteFile(userAdmin, FILENAME_UPLOAD);
+        assertFalse(storageRepository.existsByFileNameAndUser(FILENAME_UPLOAD, userAdmin));
     }
 
     void setAuthentication(SignUpDto signUpDto) {
